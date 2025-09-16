@@ -37,43 +37,10 @@ Install dependencies with:
 pip install -r requirements.txt
 ```
 
----
-
-## Running Experiments
-
-### 1. Sequential Evolution  
-Runs all genome evaluations on a single process.  
-
-```bash
+Run the code with:
+```
 python -m experiments.main
-```  
-
-Set the mode in **experiments/main.py**:
-
-```python
-MODE = "sequential"
-```  
-
-### 2. Parallel Evolution with Ray  
-
-Evaluates genomes in parallel across available CPU cores.  
-Useful for benchmarking local vs. distributed/cloud scaling.  
-
-```bash
-python -m experiments.main
-``` 
-
-Set the mode in **experiments/main.py**:
-
-```python
-MODE = "ray"
-```  
-
-You can also control the CPU usage:  
-
-```python
-num_cpus = 8
-```  
+```
 
 ---
 
