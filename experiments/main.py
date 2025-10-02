@@ -1,4 +1,5 @@
 import random
+import time
 import numpy as np
 import torch
 from torchvision import transforms, datasets
@@ -26,6 +27,11 @@ if args.mode == "sequential":
     from hyperneat.evolution_sequential import evolve
     MODE = "sequential"
 else:
+    import ray
+    ray_init_start = time.time()
+    ray.init(num_cpus=args.cpus)
+    ray_init_end = time.time()
+    ray_init_time = ray_init_end - ray_init_start
     from hyperneat.evolution_ray import evolve
     MODE = "ray"
 
@@ -44,9 +50,9 @@ substrate_cfg = {
 
 # Adjust CPPN hidden_dims based on substrate size
 if args.hidden <= 16:
-    genome_kwargs = {'input_dim': 6, 'hidden_dims': (24, 24, 12)}
+    genome_kwargs = {'input_dim': 6, 'hidden_dims': (args.hidden, args.hidden, args.hidden)}
 else:
-    genome_kwargs = {'input_dim': 6, 'hidden_dims': (32, 32, 16)}
+    genome_kwargs = {'input_dim': 6, 'hidden_dims': (args.hidden, args.hidden, args.hidden)}
 
 # ---------------------------
 # CIFAR-10 data
@@ -87,10 +93,9 @@ if __name__ == "__main__":
     train_loader, test_loader = get_cifar10_loaders(batch_size=128, subset_size=4000)
     train_loader_for_eval = train_loader
 
-    def log_fn(entry):
-        print("LOG:", entry)
 
     print(f"Starting evolution (mode={MODE}, pop={args.population}, gens={args.generations}, hidden={args.hidden}, cpus={args.cpus})...")
+    start_time = time.time()
     best_genome, best_fitness, history = evolve(
         pop_size=args.population,
         substrate_cfg=substrate_cfg,
@@ -98,13 +103,21 @@ if __name__ == "__main__":
         generations=args.generations,
         genome_kwargs=genome_kwargs,
         seed=seed,
-        log_fn=log_fn,
         device="cpu",
         num_cpus=args.cpus if MODE == "ray" else None
     )
+    end_time = time.time()
 
-    print(f"Finished. Best fitness (train subset): {best_fitness:.4f}")
+    total_execution_time = end_time - start_time
+    avg_time_per_generation = total_execution_time / args.generations
+
+    print(f"\n--- METRICS ---")
+    print(f"Total execution time: {total_execution_time:.2f}s")
+    print(f"Average time per generation: {avg_time_per_generation:.2f}s")
+    if MODE == "ray":
+        print(f"Ray initialization time: {ray_init_time:.2f}s")
+    print(f"Best fitness (train subset): {best_fitness:.4f}")
 
     best_phen = Phenotype(best_genome, substrate_cfg)
     test_acc = evaluate_network(best_phen, test_loader, device="cpu", max_batches=400)
-    print(f"Test accuracy (estimated on test set): {test_acc:.4f}")
+    print(f"Final test accuracy: {test_acc:.4f}")
