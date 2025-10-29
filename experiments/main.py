@@ -5,6 +5,7 @@ import torch
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Subset
 import argparse
+from utils.gcs_logging import GCSLogger
 
 from hyperneat.phenotype import Phenotype
 from hyperneat.evaluate import evaluate_network
@@ -19,6 +20,15 @@ parser.add_argument("--generations", type=int, default=15, help="Number of gener
 parser.add_argument("--hidden", type=int, default=16, help="Hidden substrate size (width=height)")
 parser.add_argument("--population", type=int, default=15, help="Population size")
 args = parser.parse_args()
+
+# ---------------------------
+# GCloud Storage configuration
+# ---------------------------
+gcs_bucket = "cis437-hyperneat-logs"
+gcs_prefix = f"run_{int(time.time())}"
+
+# Initialize the GCS logger
+gcs_logger = GCSLogger(bucket_name=gcs_bucket, prefix=gcs_prefix)
 
 # ---------------------------
 # Choose evolution backend
@@ -49,10 +59,7 @@ substrate_cfg = {
 }
 
 # Adjust CPPN hidden_dims based on substrate size
-if args.hidden <= 16:
-    genome_kwargs = {'input_dim': 6, 'hidden_dims': (args.hidden, args.hidden, args.hidden)}
-else:
-    genome_kwargs = {'input_dim': 6, 'hidden_dims': (args.hidden, args.hidden, args.hidden)}
+genome_kwargs = {'input_dim': 6, 'hidden_dims': (args.hidden, args.hidden, args.hidden)}
 
 # ---------------------------
 # CIFAR-10 data
@@ -93,9 +100,10 @@ if __name__ == "__main__":
     train_loader, test_loader = get_cifar10_loaders(batch_size=128, subset_size=4000)
     train_loader_for_eval = train_loader
 
-
     print(f"Starting evolution (mode={MODE}, pop={args.population}, gens={args.generations}, hidden={args.hidden}, cpus={args.cpus})...")
     start_time = time.time()
+
+    # Run evolution with cloud logging
     best_genome, best_fitness, history = evolve(
         pop_size=args.population,
         substrate_cfg=substrate_cfg,
@@ -104,10 +112,11 @@ if __name__ == "__main__":
         genome_kwargs=genome_kwargs,
         seed=seed,
         device="cpu",
-        num_cpus=args.cpus if MODE == "ray" else None
+        num_cpus=args.cpus if MODE == "ray" else None,
+        log_fn=gcs_logger.upload_generation
     )
-    end_time = time.time()
 
+    end_time = time.time()
     total_execution_time = end_time - start_time
     avg_time_per_generation = total_execution_time / args.generations
 
@@ -118,6 +127,21 @@ if __name__ == "__main__":
         print(f"Ray initialization time: {ray_init_time:.2f}s")
     print(f"Best fitness (train subset): {best_fitness:.4f}")
 
+    # Final evaluation on test set
     best_phen = Phenotype(best_genome, substrate_cfg)
     test_acc = evaluate_network(best_phen, test_loader, device="cpu", max_batches=400)
     print(f"Final test accuracy: {test_acc:.4f}")
+
+    # Upload final results summary
+    summary = {
+        "mode": MODE,
+        "generations": args.generations,
+        "population": args.population,
+        "hidden": args.hidden,
+        "cpus": args.cpus,
+        "total_execution_time": total_execution_time,
+        "avg_time_per_generation": avg_time_per_generation,
+        "best_fitness": best_fitness,
+        "test_accuracy": test_acc
+    }
+    gcs_logger.upload_json("final_summary.json", summary)

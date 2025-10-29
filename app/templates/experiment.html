@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ exp_name }} — HyperNEAT Experiment</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        table { border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 8px 16px; border: 1px solid #ccc; }
+        th { background: #eee; }
+        a { text-decoration: none; color: #2a6; }
+    </style>
+</head>
+<body>
+    <a href="/">← Back</a>
+    <h1>Experiment: {{ exp_name }}</h1>
+    <p><b>Timestamp:</b> {{ summary.timestamp }}</p>
+
+    <h2>Summary</h2>
+    <table>
+        {% for key, value in data.items() %}
+        <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+        {% endfor %}
+    </table>
+
+    {% if has_history %}
+        <h2>Fitness History</h2>
+        {{ history_plot | safe }}
+
+        <h2>Execution Time per Generation</h2>
+        {{ time_plot | safe }}
+    {% else %}
+        <p>No history data available.</p>
+    {% endif %}
+</body>
+</html>

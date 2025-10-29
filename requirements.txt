@@ -2,3 +2,9 @@ torch
 torchvision
 numpy
 ray
+streamlit
+google-cloud-storage
+pandas
+Flask==3.0.3
+google-auth
+plotly

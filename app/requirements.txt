@@ -1,0 +1,8 @@
+Flask
+gunicorn
+google-cloud-storage
+google-auth
+pandas
+plotly
+google-auth
+google-auth-oauthlib
