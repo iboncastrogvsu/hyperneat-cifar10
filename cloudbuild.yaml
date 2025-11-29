@@ -1,0 +1,51 @@
+steps:
+
+# 1. SCA (pip-audit)
+- name: 'python:3.13'
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      cd app
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install pip-audit
+      pip-audit
+
+# 2. SAST (Bandit)
+- name: 'python:3.13'
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      cd app
+      pip install bandit
+      bandit -r . -f txt -o bandit-report.txt
+      cat bandit-report.txt
+
+# 3. Deploy to App Engine
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+    - gcloud
+    - app
+    - deploy
+    - app/app.yaml
+    - --quiet
+
+# 4. DAST - Nikto
+- name: 'frapsoft/nikto'
+  args:
+    - -h
+    - https://term-project-ibon-castro.ue.r.appspot.com
+    - -maxtime
+    - "300"
+    - -o
+    - nikto-report.html
+    - -Format
+    - htm
+
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: "900s"
