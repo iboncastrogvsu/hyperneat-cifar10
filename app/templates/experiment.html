@@ -1,35 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>{{ exp_name }} — HyperNEAT Experiment</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; }
-        table { border-collapse: collapse; margin-bottom: 20px; }
-        th, td { padding: 8px 16px; border: 1px solid #ccc; }
-        th { background: #eee; }
-        a { text-decoration: none; color: #2a6; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ exp_name }} – HyperNEAT Experiment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/experiment.css') }}">
 </head>
 <body>
-    <a href="/">← Back</a>
-    <h1>Experiment: {{ exp_name }}</h1>
-    <p><b>Timestamp:</b> {{ summary.timestamp }}</p>
+    <div class="experiment-container">
+        <a href="/" class="back-link">
+            ← Back to Dashboard
+        </a>
 
-    <h2>Summary</h2>
-    <table>
-        {% for key, value in data.items() %}
-        <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
-        {% endfor %}
-    </table>
+        <div class="experiment-header">
+            <h1 class="experiment-name">{{ exp_name }}</h1>
+            <p class="experiment-timestamp">
+                <svg class="timestamp-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {{ summary.timestamp }}
+            </p>
+        </div>
 
-    {% if has_history %}
-        <h2>Fitness History</h2>
-        {{ history_plot | safe }}
+        <div class="summary-section">
+            <h2 class="section-title">
+                <span class="section-icon">📊</span>
+                Experiment Summary
+            </h2>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in data.items() %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-        <h2>Execution Time per Generation</h2>
-        {{ time_plot | safe }}
-    {% else %}
-        <p>No history data available.</p>
-    {% endif %}
+        {% if has_history %}
+            <div class="chart-section">
+                <h2 class="section-title">
+                    <span class="section-icon">📈</span>
+                    Fitness Evolution
+                </h2>
+                <div class="chart-container">
+                    {{ history_plot | safe }}
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2 class="section-title">
+                    <span class="section-icon">⏱️</span>
+                    Execution Time Analysis
+                </h2>
+                <div class="chart-container">
+                    {{ time_plot | safe }}
+                </div>
+            </div>
+        {% else %}
+            <div class="chart-section">
+                <h2 class="section-title">
+                    <span class="section-icon">📈</span>
+                    Training History
+                </h2>
+                <div class="no-history">
+                    <div class="no-history-icon">📊</div>
+                    <p class="no-history-text">No historical data available for this experiment</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>

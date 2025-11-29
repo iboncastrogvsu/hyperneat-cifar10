@@ -1,4 +1,4 @@
-import functions_framework
+from flask import Flask, request, jsonify
 import time
 import random
 import numpy as np
@@ -9,13 +9,21 @@ from utils.gcs_logging import GCSLogger
 from hyperneat.phenotype import Phenotype
 from hyperneat.evaluate import evaluate_network
 from hyperneat.evolution_sequential import evolve
+import os
 
-@functions_framework.http
-def hyperneat_evolve(request):
+app = Flask(__name__)
+
+@app.route("/", methods=["GET"])
+def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "service": "hyperneat-evolve"}, 200
+
+@app.route("/evolve", methods=["POST"])
+def hyperneat_evolve():
     """
-    HTTP Cloud Function to run HyperNEAT evolution.
+    HTTP endpoint to run HyperNEAT evolution on Cloud Run.
     
-    WARNING: Limited to 60 minutes maximum execution time!
+    Supports up to 60 minutes execution time!
     """
     try:
         request_json = request.get_json(silent=True)
@@ -23,12 +31,12 @@ def hyperneat_evolve(request):
         if not request_json:
             return {"error": "No configuration provided"}, 400
         
-        # Extract configuration with strict limits for Cloud Functions
-        generations = min(request_json.get("generations", 5), 10)
-        population = min(request_json.get("population", 10), 20)  # Max 20 population
+        # Extract configuration - much higher limits for Cloud Run!
+        generations = min(request_json.get("generations", 5), 200)  # Up to 200
+        population = min(request_json.get("population", 10), 150)   # Up to 150
         hidden = request_json.get("hidden", 16)
         seed = request_json.get("seed", 123)
-        subset_size = min(request_json.get("subset_size", 2000), 2000)
+        subset_size = min(request_json.get("subset_size", 2000), 5000)
         
         # Set random seeds
         random.seed(seed)
@@ -37,7 +45,7 @@ def hyperneat_evolve(request):
         
         # GCS configuration
         gcs_bucket = "cis437-hyperneat-logs"
-        gcs_prefix = f"cf_run_{int(time.time())}"
+        gcs_prefix = f"run_{int(time.time())}"
 
         # Initialize the GCS logger
         gcs_logger = GCSLogger(bucket_name=gcs_bucket, prefix=gcs_prefix)
@@ -76,7 +84,7 @@ def hyperneat_evolve(request):
         def phenotype_eval_wrapper(phenotype, device="cpu"):
             return evaluate_network(phenotype, train_loader, device=device, max_batches=16)
         
-        # Run evolution (sequential only - Ray not supported in Cloud Functions)
+        # Run evolution
         start_time = time.time()
         
         best_genome, best_fitness, history = evolve(
@@ -98,7 +106,7 @@ def hyperneat_evolve(request):
         test_acc = evaluate_network(best_phen, test_loader, device="cpu", max_batches=100)
         
         results = {
-            "mode": "cloud_function",
+            "mode": "cloud_run",
             "generations": generations,
             "population": population,
             "hidden": hidden,
@@ -118,3 +126,7 @@ def hyperneat_evolve(request):
         import traceback
         traceback.print_exc()
         return {"status": "error", "error": str(e)}, 500
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)

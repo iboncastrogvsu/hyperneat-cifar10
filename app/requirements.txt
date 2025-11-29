@@ -6,3 +6,4 @@ pandas
 plotly
 google-auth
 google-auth-oauthlib
+google-cloud-logging

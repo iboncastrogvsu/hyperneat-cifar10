@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Experiments Results – HyperNEAT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/local_experiments.css') }}">
+</head>
+<body>
+    <div class="local-experiments-container">
+        <div class="local-experiments-header">
+            <h1 class="local-experiments-title">🖥️ Local Experiments Results</h1>
+            <a href="/" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <!-- Table 1: Execution Results -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">📊</span>
+                Execution Results
+            </h2>
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>CPUs</th>
+                            <th>Generations</th>
+                            <th>Population</th>
+                            <th>Hidden</th>
+                            <th>Total exec time (s)</th>
+                            <th>Avg time x gen (s)</th>
+                            <th>Best fitness</th>
+                            <th>Final test acc</th>
+                            <th>Ray init time (s)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>16x16</td>
+                            <td>80.01</td>
+                            <td>5.33</td>
+                            <td>0.1718</td>
+                            <td>0.1592</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>24x24</td>
+                            <td>203</td>
+                            <td>13.53</td>
+                            <td>0.1782</td>
+                            <td>0.1659</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>16x16</td>
+                            <td>904.41</td>
+                            <td>18.09</td>
+                            <td>0.193</td>
+                            <td>0.1739</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>24x24</td>
+                            <td>2283.16</td>
+                            <td>45.66</td>
+                            <td>0.189</td>
+                            <td>0.1779</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>16x16</td>
+                            <td>3670.92</td>
+                            <td>36.71</td>
+                            <td>0.2008</td>
+                            <td>0.1797</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>24x24</td>
+                            <td>9164.7</td>
+                            <td>91.65</td>
+                            <td>0.2032</td>
+                            <td>0.1879</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>16x16</td>
+                            <td>51.63</td>
+                            <td>3.44</td>
+                            <td>0.1698</td>
+                            <td>0.1675</td>
+                            <td>0.86</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>24x24</td>
+                            <td>122.77</td>
+                            <td>8.18</td>
+                            <td>0.1633</td>
+                            <td>0.1658</td>
+                            <td>0.83</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>16x16</td>
+                            <td>549.13</td>
+                            <td>10.98</td>
+                            <td>0.1903</td>
+                            <td>0.1763</td>
+                            <td>0.88</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>24x24</td>
+                            <td>1335.45</td>
+                            <td>26.71</td>
+                            <td>0.2028</td>
+                            <td>0.1832</td>
+                            <td>0.86</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>16x16</td>
+                            <td>2135.05</td>
+                            <td>21.35</td>
+                            <td>0.2032</td>
+                            <td>0.1886</td>
+                            <td>0.89</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>24x24</td>
+                            <td>5163.79</td>
+                            <td>51.64</td>
+                            <td>0.2008</td>
+                            <td>0.184</td>
+                            <td>0.89</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>16x16</td>
+                            <td>31.81</td>
+                            <td>2.12</td>
+                            <td>0.1718</td>
+                            <td>0.1618</td>
+                            <td>0.88</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>24x24</td>
+                            <td>76.79</td>
+                            <td>5.12</td>
+                            <td>0.169</td>
+                            <td>0.1559</td>
+                            <td>0.9</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>16x16</td>
+                            <td>352.87</td>
+                            <td>7.06</td>
+                            <td>0.195</td>
+                            <td>0.1806</td>
+                            <td>0.92</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>24x24</td>
+                            <td>800.79</td>
+                            <td>16.02</td>
+                            <td>0.203</td>
+                            <td>0.1847</td>
+                            <td>0.89</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>16x16</td>
+                            <td>1349.96</td>
+                            <td>13.5</td>
+                            <td>0.1998</td>
+                            <td>0.1849</td>
+                            <td>0.89</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>24x24</td>
+                            <td>3187.35</td>
+                            <td>31.87</td>
+                            <td>0.2042</td>
+                            <td>0.1829</td>
+                            <td>0.99</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>16x16</td>
+                            <td>27.87</td>
+                            <td>1.86</td>
+                            <td>0.175</td>
+                            <td>0.1628</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>15</td>
+                            <td>15</td>
+                            <td>24x24</td>
+                            <td>87.59</td>
+                            <td>5.84</td>
+                            <td>0.1855</td>
+                            <td>0.1698</td>
+                            <td>1.03</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>16x16</td>
+                            <td>257.31</td>
+                            <td>5.15</td>
+                            <td>0.1925</td>
+                            <td>0.174</td>
+                            <td>1.06</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td>24x24</td>
+                            <td>841.67</td>
+                            <td>16.83</td>
+                            <td>0.197</td>
+                            <td>0.1806</td>
+                            <td>1.04</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>16x16</td>
+                            <td>1020.25</td>
+                            <td>10.2</td>
+                            <td>0.1968</td>
+                            <td>0.1759</td>
+                            <td>1.06</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>100</td>
+                            <td>100</td>
+                            <td>24x24</td>
+                            <td>3900.91</td>
+                            <td>39.01</td>
+                            <td>0.1973</td>
+                            <td>0.1843</td>
+                            <td>1.04</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Table 2: Speedup and Efficiency -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">⚡</span>
+                Speedup and Efficiency Analysis
+            </h2>
+            <div class="data-table-container">
+                <table class="data-table speedup-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Configuration</th>
+                            <th colspan="2">2:1</th>
+                            <th colspan="2">4:1</th>
+                            <th colspan="2">8:1</th>
+                            <th colspan="2">4:2</th>
+                            <th colspan="2">8:2</th>
+                            <th colspan="2">8:4</th>
+                        </tr>
+                        <tr>
+                            <th>Speedup</th>
+                            <th>Efficiency</th>
+                            <th>Speedup</th>
+                            <th>Efficiency</th>
+                            <th>Speedup</th>
+                            <th>Efficiency</th>
+                            <th>Speedup</th>
+                            <th>Efficiency</th>
+                            <th>Speedup</th>
+                            <th>Efficiency</th>
+                            <th>Speedup</th>
+                            <th>Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Small and 16</td>
+                            <td>1.55</td>
+                            <td>0.775</td>
+                            <td>2.52</td>
+                            <td>0.63</td>
+                            <td>2.87</td>
+                            <td>0.35875</td>
+                            <td>1.62</td>
+                            <td>0.81</td>
+                            <td>1.85</td>
+                            <td>0.4625</td>
+                            <td>1.14</td>
+                            <td>0.57</td>
+                        </tr>
+                        <tr>
+                            <td>Small and 24</td>
+                            <td>1.65</td>
+                            <td>0.825</td>
+                            <td>2.64</td>
+                            <td>0.66</td>
+                            <td>2.32</td>
+                            <td>0.29</td>
+                            <td>1.6</td>
+                            <td>0.8</td>
+                            <td>1.4</td>
+                            <td>0.35</td>
+                            <td>0.88</td>
+                            <td>0.44</td>
+                        </tr>
+                        <tr>
+                            <td>Medium and 16</td>
+                            <td>1.65</td>
+                            <td>0.825</td>
+                            <td>2.56</td>
+                            <td>0.64</td>
+                            <td>3.51</td>
+                            <td>0.43875</td>
+                            <td>1.56</td>
+                            <td>0.78</td>
+                            <td>2.13</td>
+                            <td>0.5325</td>
+                            <td>1.37</td>
+                            <td>0.685</td>
+                        </tr>
+                        <tr>
+                            <td>Medium and 24</td>
+                            <td>1.71</td>
+                            <td>0.855</td>
+                            <td>2.85</td>
+                            <td>0.7125</td>
+                            <td>2.71</td>
+                            <td>0.33875</td>
+                            <td>1.67</td>
+                            <td>0.835</td>
+                            <td>1.59</td>
+                            <td>0.3975</td>
+                            <td>0.95</td>
+                            <td>0.475</td>
+                        </tr>
+                        <tr>
+                            <td>Large and 16</td>
+                            <td>1.72</td>
+                            <td>0.86</td>
+                            <td>2.72</td>
+                            <td>0.68</td>
+                            <td>3.6</td>
+                            <td>0.45</td>
+                            <td>1.58</td>
+                            <td>0.79</td>
+                            <td>2.09</td>
+                            <td>0.5225</td>
+                            <td>1.32</td>
+                            <td>0.66</td>
+                        </tr>
+                        <tr>
+                            <td>Large and 24</td>
+                            <td>1.77</td>
+                            <td>0.885</td>
+                            <td>2.88</td>
+                            <td>0.72</td>
+                            <td>2.35</td>
+                            <td>0.29375</td>
+                            <td>1.62</td>
+                            <td>0.81</td>
+                            <td>1.32</td>
+                            <td>0.33</td>
+                            <td>0.82</td>
+                            <td>0.41</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Graphs Section -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">📈</span>
+                Performance Visualizations
+            </h2>
+            
+            <!-- First Graph Group: Total Execution Time x CPU -->
+            <div class="graph-group">
+                <h3 class="graph-group-title">Total Execution Time × CPU</h3>
+                <div class="graphs-grid graphs-grid-row-1">
+                    <div class="graph-container">
+                        <h4 class="graph-title">Small Config</h4>
+                        <div class="graph-placeholder">
+                            <img src="{{ url_for('static', filename='images/graph1.png') }}" alt="Small Config" style="display: none;" onload="this.style.display='block'; this.parentElement.style.border='none';">
+                        </div>
+                    </div>
+                    <div class="graph-container">
+                        <h4 class="graph-title">Medium Config</h4>
+                        <div class="graph-placeholder">
+                            <img src="{{ url_for('static', filename='images/graph2.png') }}" alt="Medium Config" style="display: none;" onload="this.style.display='block'; this.parentElement.style.border='none';">
+                        </div>
+                    </div>
+                    <div class="graph-container">
+                        <h4 class="graph-title">Large Config</h4>
+                        <div class="graph-placeholder">
+                            <img src="{{ url_for('static', filename='images/graph3.png') }}" alt="Large Config" style="display: none;" onload="this.style.display='block'; this.parentElement.style.border='none';">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Graph Group -->
+            <div class="graph-group">
+                <div class="graphs-grid graphs-grid-row-2">
+                    <div class="graph-container">
+                        <h4 class="graph-title">Final Test Accuracy x Config</h4>
+                        <div class="graph-placeholder">
+                            <img src="{{ url_for('static', filename='images/graph4.png') }}" alt="Graph 4" style="display: none;" onload="this.style.display='block'; this.parentElement.style.border='none';">
+                        </div>
+                    </div>
+                    <div class="graph-container">
+                        <h4 class="graph-title">Speedup Comparison x Config</h4>
+                        <div class="graph-placeholder">
+                            <img src="{{ url_for('static', filename='images/graph5.png') }}" alt="Graph 5" style="display: none;" onload="this.style.display='block'; this.parentElement.style.border='none';">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

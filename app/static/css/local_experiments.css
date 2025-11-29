@@ -1,0 +1,485 @@
+/* Local Experiments Page Styles */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+}
+
+.local-experiments-container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Page Header */
+.local-experiments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+.local-experiments-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background: white;
+    color: var(--gray-700);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn:hover {
+    background: var(--gray-50);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Section Styles */
+.section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.section:nth-of-type(2) {
+    animation-delay: 0.1s;
+}
+
+.section:nth-of-type(3) {
+    animation-delay: 0.2s;
+}
+
+.section:nth-of-type(4) {
+    animation-delay: 0.3s;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 8px;
+    font-size: 1.25rem;
+}
+
+/* Table Styles */
+.data-table-container {
+    overflow-x: auto;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.data-table thead {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.data-table th {
+    padding: 1.25rem 1rem;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    border-right: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.data-table th:last-child {
+    border-right: none;
+}
+
+.data-table th:first-child {
+    border-top-left-radius: 16px;
+}
+
+.data-table th:last-child {
+    border-top-right-radius: 16px;
+}
+
+.data-table tbody tr {
+    background: white;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.data-table tbody tr:hover {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.05), white 100px);
+    transform: scale(1.005);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.data-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+
+.data-table tbody tr:nth-child(even):hover {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.08), #fafbfc 100px);
+}
+
+.data-table td {
+    padding: 1rem;
+    color: var(--gray-700);
+    border-right: 2px solid #f3f4f6;
+    font-weight: 500;
+}
+
+.data-table td:last-child {
+    border-right: none;
+}
+
+.data-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.data-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 16px;
+}
+
+.data-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 16px;
+}
+
+/* Configuration columns (first 4 columns) - bold styling */
+.data-table td:nth-child(-n+4) {
+    font-weight: 700;
+}
+
+/* Column highlight for CPU count */
+.data-table td:first-child,
+.data-table th:first-child {
+    font-weight: 700;
+    background: rgba(102, 126, 234, 0.1);
+    border-right: 3px solid rgba(102, 126, 234, 0.3);
+}
+
+.data-table td:first-child {
+    color: #667eea;
+}
+
+.data-table tbody tr:hover td:first-child {
+    background: rgba(102, 126, 234, 0.15);
+    color: #5537d6;
+}
+
+/* Numeric columns styling */
+.data-table td:nth-child(n+5) {
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.data-table th:nth-child(n+5) {
+    text-align: center;
+}
+
+/* Graph Groups */
+.graph-group {
+    margin-bottom: 3rem;
+}
+
+.graph-group:last-child {
+    margin-bottom: 0;
+}
+
+.graph-group-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid #667eea;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Graphs Grid */
+.graphs-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2rem;
+}
+
+/* First row - 3 graphs */
+.graphs-grid-row-1 .graph-container:nth-child(1),
+.graphs-grid-row-1 .graph-container:nth-child(2),
+.graphs-grid-row-1 .graph-container:nth-child(3) {
+    grid-column: span 2;
+}
+
+/* Second row - 2 graphs centered */
+.graphs-grid-row-2 .graph-container:nth-child(1) {
+    grid-column: 2 / 4;
+}
+
+.graphs-grid-row-2 .graph-container:nth-child(2) {
+    grid-column: 4 / 6;
+}
+
+.graph-container {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
+
+.graph-container:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.graph-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.graph-placeholder {
+    width: 100%;
+    height: 400px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+    font-size: 1rem;
+    border: 2px dashed var(--gray-300);
+}
+
+.graph-placeholder img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Speedup Table Specific Styles */
+.speedup-table {
+    font-size: 0.85rem;
+}
+
+.speedup-table th {
+    font-size: 0.8rem;
+    padding: 1rem 0.75rem;
+    color: white;
+}
+
+.speedup-table td {
+    text-align: center;
+    padding: 0.875rem 0.75rem;
+    border-right: 2px solid #e5e7eb;
+}
+
+.speedup-table td:first-child {
+    text-align: left;
+    font-weight: 700;
+    padding-left: 1.25rem;
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    border-right: 3px solid rgba(102, 126, 234, 0.3);
+}
+
+.speedup-table tbody tr:hover td:first-child {
+    background: rgba(102, 126, 234, 0.15);
+    color: #5537d6;
+}
+
+.speedup-table td:last-child {
+    border-right: none;
+}
+
+/* Column groups styling with alternating colors */
+.speedup-table thead th {
+    border-right: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.speedup-table thead th:last-child {
+    border-right: none;
+}
+
+.speedup-table thead tr:first-child th:nth-child(2n) {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Highlight speedup and efficiency columns differently */
+.speedup-table tbody td:nth-child(2n+2) {
+    background: rgba(16, 185, 129, 0.05);
+    font-weight: 600;
+    color: #059669;
+}
+
+.speedup-table tbody tr:hover td:nth-child(2n+2) {
+    background: rgba(16, 185, 129, 0.12);
+}
+
+.speedup-table tbody td:nth-child(2n+3) {
+    background: rgba(245, 158, 11, 0.05);
+    color: #d97706;
+}
+
+.speedup-table tbody tr:hover td:nth-child(2n+3) {
+    background: rgba(245, 158, 11, 0.12);
+}
+
+/* Header row spanning */
+.speedup-table thead tr:first-child th {
+    padding: 1.25rem 0.75rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.speedup-table thead tr:last-child th {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Separate row groups visually */
+.speedup-table tbody tr:nth-child(2n) {
+    border-bottom: 3px solid #d1d5db;
+}
+
+.speedup-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .graphs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .graphs-grid-row-1 .graph-container:nth-child(1),
+    .graphs-grid-row-1 .graph-container:nth-child(2),
+    .graphs-grid-row-1 .graph-container:nth-child(3),
+    .graphs-grid-row-2 .graph-container:nth-child(1),
+    .graphs-grid-row-2 .graph-container:nth-child(2) {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+    
+    .local-experiments-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .local-experiments-title {
+        font-size: 2rem;
+    }
+    
+    .section {
+        padding: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .graph-group-title {
+        font-size: 1.25rem;
+    }
+    
+    .data-table {
+        font-size: 0.8rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .graph-placeholder {
+        height: 300px;
+    }
+    
+    .graphs-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .graphs-grid-row-1 .graph-container:nth-child(1),
+    .graphs-grid-row-1 .graph-container:nth-child(2),
+    .graphs-grid-row-1 .graph-container:nth-child(3),
+    .graphs-grid-row-2 .graph-container:nth-child(1),
+    .graphs-grid-row-2 .graph-container:nth-child(2) {
+        grid-column: span 1;
+    }
+}
