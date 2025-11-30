@@ -16,13 +16,10 @@
 
         <div class="action-bar">
             <button class="btn btn-primary btn-lg" id="openModalBtn">
-                🚀 Launch Experiment
+                Launch Experiment
             </button>
             <a href="/local-experiments" class="btn btn-secondary btn-lg">
-                🖥️ Local Experiments
-            </a>
-            <a href="/logs" class="btn btn-secondary btn-lg">
-                📋 View Logs
+                Local Experiments
             </a>
         </div>
 
@@ -61,30 +58,34 @@
                                 <div class="exp-title">{{ exp.name }}</div>
                                 <div class="exp-meta">
                                     <div class="meta-item">
-                                        <span class="meta-label">⏱️ Time:</span>
+                                        <span class="meta-label">Time:</span>
                                         <span class="meta-value">{{ exp.timestamp }}</span>
                                     </div>
                                     {% if exp.cpus %}
                                     <div class="meta-item">
-                                        <span class="meta-label">💻 CPUs:</span>
+                                        <span class="meta-label">CPUs:</span>
                                         <span class="meta-value">{{ exp.cpus }}</span>
                                     </div>
                                     {% endif %}
                                     <div class="meta-item">
-                                        <span class="meta-label">🔄 Generations:</span>
+                                        <span class="meta-label">Generations:</span>
                                         <span class="meta-value">{{ exp.generations }}</span>
                                     </div>
                                     <div class="meta-item">
-                                        <span class="meta-label">👥 Population:</span>
+                                        <span class="meta-label">Population:</span>
                                         <span class="meta-value">{{ exp.population }}</span>
                                     </div>
                                     <div class="meta-item">
-                                        <span class="meta-label">🧠 Hidden:</span>
+                                        <span class="meta-label">Hidden:</span>
                                         <span class="meta-value">{{ exp.hidden }}</span>
                                     </div>
                                 </div>
-                                <span class="status-badge {{ exp.mode }} {{ exp.status }}">
-                                    {{ exp.mode }}
+                                <span class="status-badge {% if exp.status == 'processing' %}processing{% else %}{{ exp.mode }}{% endif %}">
+                                    {% if exp.status == 'processing' %}
+                                        Processing
+                                    {% else %}
+                                        {{ exp.mode }}
+                                    {% endif %}
                                 </span>
                             </div>
                         </a>
@@ -93,7 +94,6 @@
             </div>
         {% else %}
             <div class="empty-state">
-                <div class="empty-state-icon">🔬</div>
                 <div class="empty-state-title">No Experiments Yet</div>
                 <div class="empty-state-text">Launch your first experiment to get started!</div>
             </div>
@@ -105,14 +105,33 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">🚀 Launch New Experiment</h5>
+                    <h5 class="modal-title">Launch New Experiment</h5>
                     <button type="button" class="btn-close" id="closeModalBtn">×</button>
                 </div>
                 <div class="modal-body">
                     <form id="launchForm" method="POST" action="/launch">
+                        <!-- Experiment Name Field -->
                         <div class="param-group">
                             <div class="param-label">
-                                <span class="param-icon">🔄</span>
+                                Experiment Name
+                            </div>
+                            <input 
+                                type="text" 
+                                name="exp_name" 
+                                id="exp_name" 
+                                class="text-input"
+                                placeholder="e.g., my_experiment_v1"
+                                pattern="[a-zA-Z0-9_-]+"
+                                title="Only letters, numbers, hyphens, and underscores allowed"
+                                required
+                            >
+                            <div class="input-hint">
+                                ⚠️ The experiment name cannot be changed later.
+                            </div>
+                        </div>
+
+                        <div class="param-group">
+                            <div class="param-label">
                                 Generations
                             </div>
                             <div class="btn-group-custom">
@@ -138,7 +157,6 @@
 
                         <div class="param-group">
                             <div class="param-label">
-                                <span class="param-icon">🧠</span>
                                 Hidden Layers
                             </div>
                             <div class="btn-group-custom">
@@ -205,13 +223,18 @@
             });
         });
 
+        // Check experiment name input
+        const expNameInput = document.getElementById('exp_name');
+        expNameInput.addEventListener('input', checkAllSelected);
+
         function checkAllSelected() {
+            const expName = document.getElementById('exp_name').value.trim();
             const generations = document.getElementById('generations').value;
             const population = document.getElementById('population').value;
             const hidden = document.getElementById('hidden').value;
             
             const launchBtn = document.getElementById('launchBtn');
-            if (generations && population && hidden) {
+            if (expName && generations && population && hidden) {
                 launchBtn.disabled = false;
             } else {
                 launchBtn.disabled = true;

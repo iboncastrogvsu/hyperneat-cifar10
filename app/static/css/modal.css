@@ -104,6 +104,44 @@
     font-size: 0.875rem;
 }
 
+/* Text Input Field */
+.text-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 12px;
+    transition: var(--transition);
+    font-family: inherit;
+    color: var(--gray-800);
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.text-input:invalid:not(:placeholder-shown) {
+    border-color: var(--danger-color);
+}
+
+.text-input::placeholder {
+    color: var(--gray-400);
+    opacity: .4;
+}
+
+/* Input Hint */
+.input-hint {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--warning-color);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.25rem;
+    line-height: 1.4;
+}
+
 .btn-group-custom {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));

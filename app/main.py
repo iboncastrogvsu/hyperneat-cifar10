@@ -51,6 +51,38 @@ def delete_experiment_from_gcs(exp_name):
         blob.delete()
     return len(blobs)
 
+def format_time_duration(seconds):
+    """Format seconds into hours, minutes, and seconds"""
+    if seconds is None:
+        return 'N/A'
+    
+    try:
+        seconds = int(float(seconds))
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        secs = seconds % 60
+        
+        if hours > 0:
+            return f"{hours}h {minutes}m {secs}s"
+        elif minutes > 0:
+            return f"{minutes}m {secs}s"
+        else:
+            return f"{secs}s"
+    except (ValueError, TypeError):
+        return str(seconds)
+
+def format_timestamp(timestamp_str):
+    """Format timestamp to mm-dd-yyyy HH:MM"""
+    if not timestamp_str or timestamp_str == 'N/A':
+        return 'N/A'
+    
+    try:
+        # Parse the timestamp
+        dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+        return dt.strftime('%m-%d-%Y %H:%M')
+    except (ValueError, AttributeError):
+        return timestamp_str
+
 @app.route("/")
 def index():
     experiments = []
@@ -92,17 +124,17 @@ def index():
                 "status": "completed"
             })
         except Exception as e:
-            # Experiment still running or failed - show as "In Progress"
+            # Experiment still running or failed - show as "Processing"
             if "404" in str(e) or "No such object" in str(e):
                 experiments.append({
                     "name": exp_name,
-                    "timestamp": "In Progress...",
+                    "timestamp": "Processing...",
                     "mode": "cloud_function",
                     "cpus": None,
                     "generations": "-",
                     "population": "-",
                     "hidden": "-",
-                    "status": "running"
+                    "status": "processing"
                 })
             else:
                 print(f"Error loading {exp_name}: {e}")
@@ -115,17 +147,37 @@ def launch_experiment():
     generations = None
     population = None
     hidden = None
+    exp_name = None
     
     try:
         # Get form data
         generations_str = request.form.get("generations")
         population_str = request.form.get("population")
         hidden_str = request.form.get("hidden")
+        exp_name = request.form.get("exp_name", "").strip()
         
-        print(f"Received form data - generations: {generations_str}, population: {population_str}, hidden: {hidden_str}")
+        print(f"Received form data - name: {exp_name}, generations: {generations_str}, population: {population_str}, hidden: {hidden_str}")
         
         if not generations_str or not population_str or not hidden_str:
             flash("Missing required parameters", "error")
+            return redirect(url_for("index"))
+        
+        if not exp_name:
+            flash("Experiment name is required", "error")
+            return redirect(url_for("index"))
+        
+        # Validate experiment name (alphanumeric, hyphens, underscores only)
+        import re
+        if not re.match(r'^[a-zA-Z0-9_-]+$', exp_name):
+            flash("Experiment name can only contain letters, numbers, hyphens, and underscores", "error")
+            return redirect(url_for("index"))
+        
+        # Check if experiment name already exists
+        bucket = client.bucket(BUCKET_NAME)
+        prefix = f"{exp_name}/"
+        existing_blobs = list(bucket.list_blobs(prefix=prefix, max_results=1))
+        if existing_blobs:
+            flash(f"Experiment name '{exp_name}' already exists. Please choose a different name.", "error")
             return redirect(url_for("index"))
         
         generations = int(generations_str)
@@ -133,12 +185,13 @@ def launch_experiment():
         hidden = int(hidden_str)
         
         # Check if Cloud Function URL is configured
-        if not CLOUD_FUNCTION_URL or CLOUD_FUNCTION_URL == "YOUR_CLOUD_FUNCTION_URL_HERE":
+        if not CLOUD_FUNCTION_URL:
             flash("Cloud Function URL not configured. Please update CLOUD_FUNCTION_URL in main.py", "error")
             return redirect(url_for("index"))
         
         # Prepare payload for Cloud Function
         payload = {
+            "exp_name": exp_name,  # Add experiment name to payload
             "generations": generations,
             "population": population,
             "hidden": hidden,
@@ -164,7 +217,7 @@ def launch_experiment():
         if response.status_code == 200:
             result = response.json()
             flash(
-                f"✅ Experiment launched! Gen: {generations}, Pop: {population}, Hidden: {hidden}",
+                f"✅ Experiment '{exp_name}' launched! Gen: {generations}, Pop: {population}, Hidden: {hidden}",
                 "success"
             )
         else:
@@ -181,14 +234,14 @@ def launch_experiment():
         # Timeout is expected - experiment is running in background
         print("Request timed out - experiment running in background")
         flash(
-            f"✅ Experiment started! Gen: {generations}, Pop: {population}, Hidden: {hidden}. Running in background, check back soon.",
+            f"✅ Experiment '{exp_name}' started! Gen: {generations}, Pop: {population}, Hidden: {hidden}. Running in background, check back soon.",
             "success"
         )
     except requests.exceptions.Timeout:
         # General timeout
         print("Request timed out - experiment running in background")
         flash(
-            f"✅ Experiment started! Gen: {generations}, Pop: {population}, Hidden: {hidden}. Running in background, check back soon.",
+            f"✅ Experiment '{exp_name}' started! Gen: {generations}, Pop: {population}, Hidden: {hidden}. Running in background, check back soon.",
             "success"
         )
     except Exception as e:
@@ -198,30 +251,6 @@ def launch_experiment():
         traceback.print_exc()
     
     return redirect(url_for("index"))
-
-@app.route("/logs")
-def view_logs():
-    """View recent Cloud Function logs (optional feature)"""
-    try:
-        from google.cloud import logging as cloud_logging
-        
-        logging_client = cloud_logging.Client()
-        logger = logging_client.logger("cloudfunctions.googleapis.com%2Fcloud-functions")
-        
-        # Get last 50 log entries
-        entries = list(logger.list_entries(max_results=50, order_by=cloud_logging.DESCENDING))
-        
-        logs = []
-        for entry in entries:
-            logs.append({
-                "timestamp": entry.timestamp.isoformat() if entry.timestamp else "",
-                "severity": entry.severity,
-                "message": str(entry.payload)
-            })
-        
-        return render_template("logs.html", logs=logs)
-    except Exception as e:
-        return f"<h3>Error loading logs: {e}</h3><p>Make sure google-cloud-logging is installed</p>", 500
 
 @app.route("/local-experiments")
 def local_experiments():
@@ -239,23 +268,47 @@ def delete_experiment(exp_name):
 
 @app.route("/experiment/<exp_name>")
 def experiment(exp_name):
+    is_processing = False
+    summary = None
+    data = None
+    first_gen_time = None
+    
+    # Try to load final summary (experiment completed)
     try:
         summary_path = f"{exp_name}/final_summary.json"
         summary = load_json_from_gcs(summary_path)
         data = summary["data"]
+        
+        # Filter out GCS fields
+        if data:
+            data = {k: v for k, v in data.items() if k not in ['GCS_bucket', 'GCS_prefix']}
+            
+            # Format total_execution_time
+            if 'total_execution_time' in data:
+                data['total_execution_time'] = format_time_duration(data['total_execution_time'])
+        
+        # Format timestamp in summary
+        if summary and summary.get("timestamp"):
+            summary["timestamp"] = format_timestamp(summary["timestamp"])
+            
     except Exception as e:
-        import traceback
-        print("ERROR loading final_summary.json for", exp_name)
-        traceback.print_exc()
-        return f"<h3>Error loading summary: {e}</h3>", 500
+        # No final summary means experiment is still processing
+        is_processing = True
+        print(f"No final_summary.json for {exp_name} - experiment is processing")
 
+    # Load generation history (works for both processing and completed)
+    df = pd.DataFrame()
     try:
         df = load_history(exp_name)
+        if not df.empty and is_processing:
+            # Get first generation timestamp for elapsed time calculation
+            if "timestamp" in df.columns:
+                first_gen_time = df.iloc[0]["timestamp"]
+                # Ensure it's in ISO format that JavaScript can parse
+                if isinstance(first_gen_time, str):
+                    first_gen_time = first_gen_time.replace("Z", "+00:00")
     except Exception as e:
-        import traceback
-        print("ERROR loading history for", exp_name)
-        traceback.print_exc()
-        return f"<h3>Error loading history: {e}</h3>", 500
+        print(f"No history yet for {exp_name}: {e}")
 
     history_plot_html = ""
     time_plot_html = ""
@@ -265,21 +318,29 @@ def experiment(exp_name):
             # Fitness line chart
             import plotly.graph_objs as go
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=df["gen"], y=df["avg"], mode="lines", name="Average Fitness"))
-            fig.add_trace(go.Scatter(x=df["gen"], y=df["max"], mode="lines", name="Max Fitness"))
-            fig.update_layout(title="Fitness Over Generations", xaxis_title="Generation", yaxis_title="Fitness")
+            fig.add_trace(go.Scatter(x=df["gen"], y=df["avg"], mode="lines+markers", name="Average Fitness"))
+            fig.add_trace(go.Scatter(x=df["gen"], y=df["max"], mode="lines+markers", name="Max Fitness"))
+            fig.update_layout(
+                title="Fitness Over Generations", 
+                xaxis_title="Generation", 
+                yaxis_title="Fitness",
+                hovermode='x unified'
+            )
             history_plot_html = fig.to_html(full_html=False)
 
             # Time bar chart
             fig2 = go.Figure()
             fig2.add_trace(go.Bar(x=df["gen"], y=df["time_s"], name="Time (s)"))
-            fig2.update_layout(title="Execution Time per Generation", xaxis_title="Generation", yaxis_title="Time (s)")
+            fig2.update_layout(
+                title="Execution Time per Generation", 
+                xaxis_title="Generation", 
+                yaxis_title="Time (s)"
+            )
             time_plot_html = fig2.to_html(full_html=False)
         except Exception as e:
             import traceback
             print("ERROR creating plots for", exp_name)
             traceback.print_exc()
-            return f"<h3>Error creating plots: {e}</h3>", 500
 
     return render_template(
         "experiment.html",
@@ -289,6 +350,8 @@ def experiment(exp_name):
         history_plot=history_plot_html,
         time_plot=time_plot_html,
         has_history=not df.empty,
+        is_processing=is_processing,
+        first_gen_time=first_gen_time,
     )
 
 if __name__ == "__main__":

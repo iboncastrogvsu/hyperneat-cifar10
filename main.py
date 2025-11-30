@@ -10,8 +10,11 @@ from hyperneat.phenotype import Phenotype
 from hyperneat.evaluate import evaluate_network
 from hyperneat.evolution_sequential import evolve
 import os
+import re
 
 app = Flask(__name__)
+
+# Run it: gcloud run deploy hyperneat-evolve --source .
 
 @app.route("/", methods=["GET"])
 def health_check():
@@ -31,21 +34,33 @@ def hyperneat_evolve():
         if not request_json:
             return {"error": "No configuration provided"}, 400
         
-        # Extract configuration - much higher limits for Cloud Run!
+        # Extract configuration
         generations = min(request_json.get("generations", 5), 200)  # Up to 200
         population = min(request_json.get("population", 10), 150)   # Up to 150
         hidden = request_json.get("hidden", 16)
         seed = request_json.get("seed", 123)
         subset_size = min(request_json.get("subset_size", 2000), 5000)
         
+        # Get experiment name or generate default
+        exp_name = request_json.get("exp_name", "").strip()
+        
+        # Validate experiment name
+        if exp_name:
+            # Only allow alphanumeric, hyphens, and underscores
+            if not re.match(r'^[a-zA-Z0-9_-]+$', exp_name):
+                return {"error": "Experiment name can only contain letters, numbers, hyphens, and underscores"}, 400
+        else:
+            # If no name provided, generate default
+            exp_name = f"run_{int(time.time())}"
+        
         # Set random seeds
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
         
-        # GCS configuration
+        # GCS configuration - use experiment name as folder
         gcs_bucket = "cis437-hyperneat-logs"
-        gcs_prefix = f"run_{int(time.time())}"
+        gcs_prefix = exp_name
 
         # Initialize the GCS logger
         gcs_logger = GCSLogger(bucket_name=gcs_bucket, prefix=gcs_prefix)
@@ -112,9 +127,7 @@ def hyperneat_evolve():
             "hidden": hidden,
             "total_execution_time": total_time,
             "best_fitness": float(best_fitness),
-            "test_accuracy": float(test_acc),
-            "gcs_bucket": gcs_bucket,
-            "gcs_prefix": gcs_prefix
+            "test_accuracy": float(test_acc)
         }
         
         gcs_logger.upload_json("final_summary.json", results)

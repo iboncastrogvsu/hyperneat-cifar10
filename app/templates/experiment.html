@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ exp_name }} – HyperNEAT Experiment</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/experiment.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="experiment-container">
@@ -14,17 +15,29 @@
 
         <div class="experiment-header">
             <h1 class="experiment-name">{{ exp_name }}</h1>
-            <p class="experiment-timestamp">
-                <svg class="timestamp-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                {{ summary.timestamp }}
-            </p>
+            
+            {% if is_processing %}
+                <div class="processing-banner">
+                    <span class="processing-indicator">
+                        <span class="processing-spinner">⏳</span>
+                        Experiment in Progress
+                    </span>
+                    <div class="elapsed-time">
+                        Elapsed: <span id="elapsedValue">Calculating...</span>
+                    </div>
+                </div>
+            {% else %}
+                <p class="experiment-timestamp">
+                    <svg class="timestamp-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ summary.timestamp if summary else 'N/A' }}
+                </p>
+            {% endif %}
         </div>
 
         <div class="summary-section">
             <h2 class="section-title">
-                <span class="section-icon">📊</span>
                 Experiment Summary
             </h2>
             <table class="summary-table">
@@ -35,12 +48,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for key, value in data.items() %}
-                    <tr>
-                        <th>{{ key }}</th>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
+                    {% if data %}
+                        {% for key, value in data.items() %}
+                            {% if key not in ['gcs_bucket', 'gcs_prefix'] %}
+                            <tr>
+                                <th>{{ key }}</th>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="2" style="text-align: center; color: var(--gray-600);">
+                                Waiting for experiment data...
+                            </td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -48,8 +71,10 @@
         {% if has_history %}
             <div class="chart-section">
                 <h2 class="section-title">
-                    <span class="section-icon">📈</span>
                     Fitness Evolution
+                    {% if is_processing %}
+                        <span class="live-badge">LIVE</span>
+                    {% endif %}
                 </h2>
                 <div class="chart-container">
                     {{ history_plot | safe }}
@@ -58,8 +83,10 @@
 
             <div class="chart-section">
                 <h2 class="section-title">
-                    <span class="section-icon">⏱️</span>
                     Execution Time Analysis
+                    {% if is_processing %}
+                        <span class="live-badge">LIVE</span>
+                    {% endif %}
                 </h2>
                 <div class="chart-container">
                     {{ time_plot | safe }}
@@ -68,15 +95,64 @@
         {% else %}
             <div class="chart-section">
                 <h2 class="section-title">
-                    <span class="section-icon">📈</span>
                     Training History
                 </h2>
                 <div class="no-history">
-                    <div class="no-history-icon">📊</div>
-                    <p class="no-history-text">No historical data available for this experiment</p>
+                    <div class="no-history-icon">
+                        {% if is_processing %}
+                            <div class="loading-spinner">⏳</div>
+                        {% endif %}
+                    </div>
+                    <p class="no-history-text">
+                        {% if is_processing %}
+                            Waiting for generation data... The first generation will appear here soon.
+                        {% else %}
+                            No historical data available for this experiment
+                        {% endif %}
+                    </p>
                 </div>
             </div>
         {% endif %}
     </div>
+    
+    {% if is_processing %}
+    <script>
+        // Calculate elapsed time from first generation timestamp if available
+        let startTime = null;
+        
+        {% if first_gen_time %}
+        startTime = new Date("{{ first_gen_time }}").getTime();
+        {% else %}
+        startTime = Date.now();
+        {% endif %}
+        
+        // Update elapsed time every second
+        function updateElapsedTime() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+            
+            let timeString = '';
+            if (hours > 0) {
+                timeString = `${hours}h ${minutes}m ${seconds}s`;
+            } else if (minutes > 0) {
+                timeString = `${minutes}m ${seconds}s`;
+            } else {
+                timeString = `${seconds}s`;
+            }
+            
+            document.getElementById('elapsedValue').textContent = timeString;
+        }
+        
+        updateElapsedTime();
+        setInterval(updateElapsedTime, 1000);
+        
+        // Auto-refresh page every 10 seconds to get new generation data
+        setTimeout(() => {
+            location.reload();
+        }, 10000);
+    </script>
+    {% endif %}
 </body>
 </html>
