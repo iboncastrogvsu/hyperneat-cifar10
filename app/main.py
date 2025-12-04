@@ -1,28 +1,71 @@
 from flask import Flask, render_template, redirect, url_for, flash, request
 from google.cloud import storage
-from kubernetes import client, config
+from google.cloud.container_v1 import ClusterManagerClient
+from google.auth import compute_engine
 from datetime import datetime
 import json
 import pandas as pd
 import requests
 import secrets
+import os
+import base64
+import tempfile
 
 # ===== CONFIGURATION =====
 BUCKET_NAME = "cis437-hyperneat-logs"
 CLOUD_FUNCTION_URL = "https://hyperneat-evolve-800545748601.us-central1.run.app/evolve"
 K8S_CLUSTER_NAME = "hyperneat"
 K8S_NAMESPACE = "default"
+GCP_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "term-project-ibon-castro")
+GCP_ZONE = "us-central1-a"  # Update with your cluster zone/location
 
 storage_client = storage.Client()
 
-# Initialize Kubernetes client
-try:
-    config.load_incluster_config()
-except:
-    config.load_kube_config()
+# Kubernetes client will be initialized when needed
+k8s_custom_api = None
 
-k8s_batch_v1 = client.BatchV1Api()
-k8s_custom_api = client.CustomObjectsApi()
+def init_kubernetes():
+    """Initialize Kubernetes client using GKE API"""
+    global k8s_custom_api
+    
+    if k8s_custom_api is not None:
+        return True
+    
+    try:
+        from kubernetes import client as k8s_client
+        
+        # Get cluster details from GKE API
+        gke_client = ClusterManagerClient()
+        cluster_name = f"projects/{GCP_PROJECT_ID}/locations/{GCP_ZONE}/clusters/{K8S_CLUSTER_NAME}"
+        cluster = gke_client.get_cluster(name=cluster_name)
+        
+        # Get credentials
+        import google.auth
+        creds, _ = google.auth.default()
+        auth_req = google.auth.transport.requests.Request()
+        creds.refresh(auth_req)
+        
+        # Configure Kubernetes client
+        configuration = k8s_client.Configuration()
+        configuration.host = f"https://{cluster.endpoint}"
+        
+        # Save cluster CA certificate to temp file
+        with tempfile.NamedTemporaryFile(delete=False) as ca_cert:
+            ca_cert.write(base64.b64decode(cluster.master_auth.cluster_ca_certificate))
+            configuration.ssl_ca_cert = ca_cert.name
+        
+        # Set the bearer token
+        configuration.api_key = {"authorization": f"Bearer {creds.token}"}
+        
+        # Create API client
+        api_client = k8s_client.ApiClient(configuration)
+        k8s_custom_api = k8s_client.CustomObjectsApi(api_client)
+        
+        print("Kubernetes client initialized successfully via GKE API")
+        return True
+    except Exception as e:
+        print(f"Could not initialize Kubernetes client: {e}")
+        return False
 
 # ===== FLASK APP =====
 app = Flask(__name__)
@@ -205,6 +248,9 @@ def create_rayjob_yaml_with_secret(exp_name, generations, population, hidden):
 
 def launch_kubernetes_job(exp_name, generations, population, hidden):
     """Launch a RayJob on Kubernetes cluster"""
+    if not init_kubernetes():
+        return False, "Could not connect to Kubernetes cluster"
+    
     try:
         rayjob = create_rayjob_yaml_with_secret(exp_name, generations, population, hidden)
         
@@ -222,6 +268,9 @@ def launch_kubernetes_job(exp_name, generations, population, hidden):
 
 def delete_rayjob(exp_name):
     """Delete a RayJob from Kubernetes"""
+    if not init_kubernetes():
+        return True  # If K8s not available, assume already cleaned up
+    
     try:
         k8s_custom_api.delete_namespaced_custom_object(
             group="ray.io",
@@ -231,13 +280,17 @@ def delete_rayjob(exp_name):
             name=f"hyperneat-{exp_name}"
         )
         return True
-    except client.exceptions.ApiException as e:
-        if e.status == 404:
+    except Exception as e:
+        if "404" in str(e):
             return True
+        print(f"Error deleting RayJob: {e}")
         return False
 
 def get_rayjob_status(exp_name):
     """Get the status of a RayJob"""
+    if not init_kubernetes():
+        return None
+    
     try:
         job = k8s_custom_api.get_namespaced_custom_object(
             group="ray.io",
@@ -247,10 +300,11 @@ def get_rayjob_status(exp_name):
             name=f"hyperneat-{exp_name}"
         )
         return job.get("status", {})
-    except client.exceptions.ApiException as e:
-        if e.status == 404:
+    except Exception as e:
+        if "404" in str(e):
             return None
-        raise
+        print(f"Error getting RayJob status: {e}")
+        return None
 
 def format_time_duration(seconds):
     """Format seconds into hours, minutes, and seconds"""
@@ -312,7 +366,6 @@ def index():
             except Exception:
                 timestamp_fmt = timestamp
 
-
             mode = data.get("mode", "-")
             
             compute_platform = data.get("compute_platform", None)
@@ -334,6 +387,7 @@ def index():
             })
         except Exception as e:
             if "404" in str(e) or "No such object" in str(e):
+                # Try to check if it's a Kubernetes job
                 k8s_status = get_rayjob_status(exp_name)
                 if k8s_status:
                     experiments.append({
@@ -347,6 +401,7 @@ def index():
                         "status": "processing"
                     })
                 else:
+                    # Assume it's Cloud Run processing
                     experiments.append({
                         "name": exp_name,
                         "timestamp": "Processing...",

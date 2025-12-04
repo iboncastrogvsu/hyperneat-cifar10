@@ -1,2 +1,11 @@
-runtime: python313
+runtime: python312
 entrypoint: gunicorn -b :$PORT main:app
+
+instance_class: F4
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+
+env_variables:
+  COMPUTE_PLATFORM: "app_engine"

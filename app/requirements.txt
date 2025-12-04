@@ -4,7 +4,7 @@ google-cloud-storage
 google-auth
 pandas
 plotly
-google-auth
 google-auth-oauthlib
 google-cloud-logging
+google-cloud-container
 kubernetes
