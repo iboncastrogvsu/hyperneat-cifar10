@@ -28,6 +28,9 @@ def hyperneat_evolve():
     
     Supports up to 60 minutes execution time!
     """
+    # STEP 1: Record invocation time immediately
+    invocation_time = time.time()
+    
     try:
         request_json = request.get_json(silent=True)
         
@@ -78,6 +81,12 @@ def hyperneat_evolve():
         
         genome_kwargs = {'input_dim': 6, 'hidden_dims': (hidden, hidden, hidden)}
         
+        # STEP 2: Record when we're about to start actual work (after all setup)
+        work_start_time = time.time()
+        cold_start_time = work_start_time - invocation_time
+        
+        print(f"Cloud Run warm-up time: {cold_start_time:.3f}s")
+        
         # Load CIFAR-10 data
         transform = transforms.Compose([
             transforms.ToTensor(),
@@ -100,7 +109,7 @@ def hyperneat_evolve():
             return evaluate_network(phenotype, train_loader, device=device, max_batches=16)
         
         # Run evolution
-        start_time = time.time()
+        evolution_start_time = time.time()
         
         best_genome, best_fitness, history = evolve(
             pop_size=population,
@@ -114,7 +123,8 @@ def hyperneat_evolve():
         )
         
         end_time = time.time()
-        total_time = end_time - start_time
+        evolution_time = end_time - evolution_start_time
+        total_time = end_time - invocation_time
         
         # Quick test evaluation
         best_phen = Phenotype(best_genome, substrate_cfg)
@@ -125,10 +135,17 @@ def hyperneat_evolve():
             "generations": generations,
             "population": population,
             "hidden": hidden,
+            "cloud_run_warmup_time": cold_start_time,
+            "evolution_time": evolution_time,
             "total_execution_time": total_time,
             "best_fitness": float(best_fitness),
             "test_accuracy": float(test_acc)
         }
+        
+        print(f"Summary:")
+        print(f"   - Warm-up: {cold_start_time:.3f}s")
+        print(f"   - Evolution: {evolution_time:.3f}s")
+        print(f"   - Total: {total_time:.3f}s")
         
         gcs_logger.upload_json("final_summary.json", results)
         

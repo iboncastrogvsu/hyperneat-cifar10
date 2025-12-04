@@ -110,6 +110,21 @@
                 </div>
                 <div class="modal-body">
                     <form id="launchForm" method="POST" action="/launch">
+                        <!-- Compute Option Selection -->
+                        <div class="param-group">
+                            <div class="param-label">
+                                Compute Platform
+                            </div>
+                            <div class="btn-group-custom">
+                                <button type="button" class="btn btn-outline-primary btn-option active" data-param="compute_option" data-value="cloud_run">Cloud Run</button>
+                                <button type="button" class="btn btn-outline-primary btn-option" data-param="compute_option" data-value="kubernetes">Kubernetes</button>
+                            </div>
+                            <input type="hidden" name="compute_option" id="compute_option" value="cloud_run" required>
+                            <div class="input-hint">
+                                Cloud Run: Serverless, auto-scaling | Kubernetes: Distributed Ray cluster
+                            </div>
+                        </div>
+
                         <!-- Experiment Name Field -->
                         <div class="param-group">
                             <div class="param-label">
@@ -126,7 +141,7 @@
                                 required
                             >
                             <div class="input-hint">
-                                ⚠️ The experiment name cannot be changed later.
+                                The experiment name cannot be changed later.
                             </div>
                         </div>
 
@@ -144,7 +159,6 @@
 
                         <div class="param-group">
                             <div class="param-label">
-                                <span class="param-icon">👥</span>
                                 Population
                             </div>
                             <div class="btn-group-custom">
@@ -232,9 +246,10 @@
             const generations = document.getElementById('generations').value;
             const population = document.getElementById('population').value;
             const hidden = document.getElementById('hidden').value;
+            const computeOption = document.getElementById('compute_option').value;
             
             const launchBtn = document.getElementById('launchBtn');
-            if (expName && generations && population && hidden) {
+            if (expName && generations && population && hidden && computeOption) {
                 launchBtn.disabled = false;
             } else {
                 launchBtn.disabled = true;

@@ -6,7 +6,8 @@ from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Subset
 import argparse
 from utils.gcs_logging import GCSLogger
-
+import sys
+from google.cloud import storage
 from hyperneat.phenotype import Phenotype
 from hyperneat.evaluate import evaluate_network
 
@@ -14,6 +15,7 @@ from hyperneat.evaluate import evaluate_network
 # CLI arguments
 # ---------------------------
 parser = argparse.ArgumentParser(description="Run HyperNEAT Evolutionary Experiment")
+parser.add_argument("--name_exp", type=str, required=True, help="Experiment name")
 parser.add_argument("--mode", type=str, default="sequential", help="Sequential or ray (parallel)")
 parser.add_argument("--cpus", type=int, default=1, help="Number of CPUs (1 = sequential, >1 = Ray)")
 parser.add_argument("--generations", type=int, default=15, help="Number of generations")
@@ -24,8 +26,27 @@ args = parser.parse_args()
 # ---------------------------
 # GCloud Storage configuration
 # ---------------------------
+
+def experiment_exists(bucket_name, name_exp):
+    """Check if an experiment folder already exists in GCS"""
+    try:
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        
+        # Check if any blobs exist with this prefix
+        blobs = list(bucket.list_blobs(prefix=f"{name_exp}/", max_results=1))
+        return len(blobs) > 0
+    except Exception as e:
+        print(f"Warning: Could not check if experiment exists: {e}")
+        return False
+
 gcs_bucket = "cis437-hyperneat-logs"
-gcs_prefix = f"run_{int(time.time())}"
+gcs_prefix = args.name_exp
+
+if experiment_exists(gcs_bucket, args.name_exp):
+    print(f"Error: Experiment '{args.name_exp}' already exists in bucket '{gcs_bucket}'")
+    print(f"   Please choose a different experiment name or delete the existing experiment.")
+    sys.exit(1)
 
 # Initialize the GCS logger
 gcs_logger = GCSLogger(bucket_name=gcs_bucket, prefix=gcs_prefix)
@@ -100,6 +121,7 @@ if __name__ == "__main__":
     train_loader, test_loader = get_cifar10_loaders(batch_size=128, subset_size=4000)
     train_loader_for_eval = train_loader
 
+    print(f"Experiment name: {args.name_exp}")
     print(f"Starting evolution (mode={MODE}, pop={args.population}, gens={args.generations}, hidden={args.hidden}, cpus={args.cpus})...")
     start_time = time.time()
 
@@ -121,6 +143,7 @@ if __name__ == "__main__":
     avg_time_per_generation = total_execution_time / args.generations
 
     print(f"\n--- METRICS ---")
+    print(f"Experiment name: {args.name_exp}")
     print(f"Total execution time: {total_execution_time:.2f}s")
     print(f"Average time per generation: {avg_time_per_generation:.2f}s")
     if MODE == "ray":
@@ -134,6 +157,7 @@ if __name__ == "__main__":
 
     # Upload final results summary
     summary = {
+        "experiment_name": args.name_exp,
         "mode": MODE,
         "generations": args.generations,
         "population": args.population,

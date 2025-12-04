@@ -6,6 +6,23 @@
     <title>{{ exp_name }} – HyperNEAT Experiment</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/experiment.css') }}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        /* Highlight important timing metrics */
+        .timing-highlight {
+            background-color: #fef3c7;
+            font-weight: 600;
+        }
+        .warmup-badge {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
     <div class="experiment-container">
@@ -51,8 +68,13 @@
                     {% if data %}
                         {% for key, value in data.items() %}
                             {% if key not in ['gcs_bucket', 'gcs_prefix'] %}
-                            <tr>
-                                <th>{{ key }}</th>
+                            <tr {% if key in ['cloud_run_warmup_time', 'evolution_time', 'total_execution_time'] %}class="timing-highlight"{% endif %}>
+                                <th>
+                                    {{ key }}
+                                    {% if key == 'cloud_run_warmup_time' %}
+                                        <span class="warmup-badge">COLD START</span>
+                                    {% endif %}
+                                </th>
                                 <td>{{ value }}</td>
                             </tr>
                             {% endif %}

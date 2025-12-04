@@ -318,6 +318,11 @@ body {
     color: white;
 }
 
+.status-badge.kubernetes {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
 /* Processing status - distinct animated style */
 .status-badge.processing {
     background: linear-gradient(135deg, #06b6d4, #0891b2);
