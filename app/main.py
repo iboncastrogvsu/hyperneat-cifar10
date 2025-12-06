@@ -1,7 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, flash, request
 from google.cloud import storage
 from google.cloud.container_v1 import ClusterManagerClient
-from google.auth import compute_engine
 from datetime import datetime
 import json
 import pandas as pd
@@ -17,7 +16,7 @@ CLOUD_FUNCTION_URL = "https://hyperneat-evolve-800545748601.us-central1.run.app/
 K8S_CLUSTER_NAME = "hyperneat"
 K8S_NAMESPACE = "default"
 GCP_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "term-project-ibon-castro")
-GCP_ZONE = "us-central1-a"  # Update with your cluster zone/location
+GCP_ZONE = "us-central1-a"
 
 storage_client = storage.Client()
 
