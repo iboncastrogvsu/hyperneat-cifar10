@@ -146,7 +146,26 @@ kubectl create secret generic gcs-key \
 rm key.json
 ```
 
-Once we have the cluster running and the permissions established, modify the following lines in the app/main.py:
+We also need to install Ray in our cluster. Steps:
+1. Set up the cluster locally:
+```gcloud container clusters get-credentials <CLUSTER_NAME> --zone <ZONE> --project <PROJECT_ID>```
+2. Install kuberay with Helm:
+```
+helm repo add kuberay https://ray-project.github.io/kuberay-helm/
+helm repo update
+```
+3. Install kuberay operator:
+```
+kubectl create namespace ray-system
+helm install kuberay-operator kuberay/kuberay-operator \
+  --namespace ray-system \
+  --version 1.0.0
+```
+
+
+
+
+Once we have the everything running, modify the following lines in the app/main.py:
 - Line 16, substitute *hyperneat* by your CLUSTER_NAME
 - Line 18, substitute *term-project-ibon-castro* by your PROJECT_ID
 - Line 19, substitute *us-central1-a* by your ZONE
